@@ -633,7 +633,8 @@ def show_questionnaire(request, runinfo, errors={}):
     if debug_questionnaire:
         current_answers = Answer.objects.filter(subject=runinfo.subject, runid=runinfo.runid).order_by('id')
 
-    r = r2r("questionnaire/questionset.html", request,
+    template_name = questionset.questionnaire.base_template
+    r = r2r(template_name, request,
             questionset=runinfo.questionset,
             runinfo=runinfo,
             errors=errors,

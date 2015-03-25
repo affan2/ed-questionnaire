@@ -47,7 +47,7 @@ class QuestionAdmin(admin.ModelAdmin):
 
 
 class QuestionnaireAdmin(admin.ModelAdmin):
-    list_display = ('name', 'redirect_url', 'export')
+    list_display = ('name', 'base_template', 'redirect_url', 'export')
     readonly_fields = ('export',)
 
     def export(self, obj):
@@ -76,6 +76,6 @@ adminsite.register(Questionnaire, QuestionnaireAdmin)
 adminsite.register(Question, QuestionAdmin)
 adminsite.register(QuestionSet, QuestionSetAdmin)
 adminsite.register(Subject, SubjectAdmin)
-adminsite.register(RunInfo, RunInfoAdmin) 
-adminsite.register(RunInfoHistory, RunInfoHistoryAdmin) 
+adminsite.register(RunInfo, RunInfoAdmin)
+adminsite.register(RunInfoHistory, RunInfoHistoryAdmin)
 adminsite.register(Answer, AnswerAdmin)

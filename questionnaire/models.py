@@ -66,6 +66,7 @@ class Subject(models.Model):
 
 class Questionnaire(models.Model):
     name = models.CharField(max_length=128)
+    base_template = models.CharField(max_length=255, help_text="Full path within the templates directory.", default="surveys/base.html")
     redirect_url = models.CharField(max_length=128, help_text="URL to redirect to when Questionnaire is complete. Macros: $SUBJECTID, $RUNID, $LANG", default="/static/complete.html")
 
     def __unicode__(self):
