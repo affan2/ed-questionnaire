@@ -6,9 +6,7 @@
             dataType: 'json',
             success: function(data) {
                 var progress = data.progress;
-
-                var bar = $('#progress_bar').find('.ui-progress');
-                bar.animate({'width': progress.toString() + '%'});
+                $('.progress-bar').css('width', progress+'%').attr('aria-valuenow', progress).text(progress+"% complete");
             }
         };
 
