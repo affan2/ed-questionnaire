@@ -8,12 +8,12 @@ from questionnaire import Processors, QuestionProcessors
 from django.utils.translation import ugettext as _
 
 @question_proc('custom')
-def question_custom(request, question):
+def question_custom(request, question, runinfo, errors):
     cd = question.getcheckdict()
     _type = cd['type']
     d = {}
     if _type in QuestionProcessors:
-        d = QuestionProcessors[_type](request, question)
+        d = QuestionProcessors[_type](request, question, runinfo, errors)
     if 'template' not in d:
         d['template'] = 'questionnaire/%s.html' % _type
     return d

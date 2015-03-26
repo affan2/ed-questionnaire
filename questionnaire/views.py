@@ -492,7 +492,6 @@ def finish_questionnaire(request, runinfo, questionnaire):
     hist = RunInfoHistory()
     hist.subject = runinfo.subject
     hist.runid = runinfo.runid
-    hist.completed = datetime.now()
     hist.questionnaire = questionnaire
     hist.tags = runinfo.tags
     hist.skipped = runinfo.skipped
@@ -584,7 +583,7 @@ def show_questionnaire(request, runinfo, errors={}):
         if 'default' in cd and not question.number in cookiedict:
             qvalues[question.number] = cd['default']
         if Type in QuestionProcessors:
-            qdict.update(QuestionProcessors[Type](request, question))
+            qdict.update(QuestionProcessors[Type](request, question, runinfo, errors))
             if 'jsinclude' in qdict:
                 if qdict['jsinclude'] not in jsinclude:
                     jsinclude.extend(qdict['jsinclude'])

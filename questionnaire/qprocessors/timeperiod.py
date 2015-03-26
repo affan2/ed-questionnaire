@@ -12,7 +12,7 @@ perioddict = {
 }
 
 @question_proc('timeperiod')
-def question_timeperiod(request, question):
+def question_timeperiod(request, question, runinfo, errors):
     cd = question.getcheckdict()
     if "units" in cd:
         units = cd["units"].split(',')

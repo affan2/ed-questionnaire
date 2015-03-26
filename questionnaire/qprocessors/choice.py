@@ -1,10 +1,11 @@
 from math import ceil
 from questionnaire import *
+from questionnaire.models import Answer
 from django.utils.translation import ugettext as _, ungettext
 from json import dumps
 
 @question_proc('choice', 'choice-freeform', 'dropdown')
-def question_choice(request, question):
+def question_choice(request, question, runinfo, errors):
     choices = []
     jstriggers = []
 
@@ -12,10 +13,21 @@ def question_choice(request, question):
     key = "question_%s" % question.number
     key2 = "question_%s_comment" % question.number
     val = None
+    answers = []
     if key in request.POST:
         val = request.POST[key]
     else:
-        if 'default' in cd:
+        if question.number not in errors:
+            try:
+                answers = Answer.objects.get(subject=runinfo.subject, runid=runinfo.runid, question=question)
+            except Answer.DoesNotExist:
+                pass
+            except Answer.MultipleObjectsReturned:
+                answers = Answer.objects.filter(subject=runinfo.subject, runid=runinfo.runid, question=question).order_by('-id')[0]
+
+        if answers and answers.split_answer():
+            val = answers.split_answer()[0]
+        elif 'default' in cd:
             val = cd['default']
     for choice in question.choices():
         choices.append( ( choice.value == val, choice, ) )
@@ -23,12 +35,21 @@ def question_choice(request, question):
     if question.type == 'choice-freeform':
         jstriggers.append('%s_comment' % question.number)
 
+    comment = ''
+    if key2 in request.POST:
+        comment = request.POST.get(key2, "")
+    else:
+        if answers:
+            for answer in answers.split_answer():
+                if isinstance(answer, list):
+                    comment = answer[0]
+
     return {
         'choices'   : choices,
         'sel_entry' : val == '_entry_',
         'qvalue'    : val or '',
         'required'  : True,
-        'comment'   : request.POST.get(key2, ""),
+        'comment'   : comment,
         'jstriggers': jstriggers,
     }
 
@@ -53,17 +74,28 @@ add_type('dropdown', 'Dropdown choice [select]')
 
 
 @question_proc('choice-multiple', 'choice-multiple-freeform')
-def question_multiple(request, question):
+def question_multiple(request, question, runinfo, errors):
     key = "question_%s" % question.number
     choices = []
     counter = 0
     cd = question.getcheckdict()
     defaults = cd.get('default','').split(',')
+
+    answers = []
+    if question.number not in errors:
+        try:
+            answers = Answer.objects.get(subject=runinfo.subject, runid=runinfo.runid, question=question)
+        except Answer.DoesNotExist:
+            pass
+        except Answer.MultipleObjectsReturned:
+            answers = Answer.objects.filter(subject=runinfo.subject, runid=runinfo.runid, question=question).order_by('-id')[0]
+
     for choice in question.choices():
         counter += 1
         key = "question_%s_multiple_%d" % (question.number, choice.sortid)
         if key in request.POST or \
-          (request.method == 'GET' and choice.value in defaults):
+            (answers and choice.value in answers.split_answer()) or \
+                (request.method == 'GET' and choice.value in defaults):
             choices.append( (choice, key, ' checked',) )
         else:
             choices.append( (choice, key, '',) )
@@ -79,7 +111,12 @@ def question_multiple(request, question):
         if key in request.POST:
             extras.append( (key, request.POST[key],) )
         else:
-            extras.append( (key, '',) )
+            if answers:
+                for answer in answers.split_answer():
+                    if isinstance(answer, list):
+                        extras.append( (key, answer[0],) )
+            else:
+                extras.append( (key, '',) )
     return {
         "choices": choices,
         "extras": extras,

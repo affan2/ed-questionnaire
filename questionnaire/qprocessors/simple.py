@@ -1,10 +1,11 @@
 from questionnaire import *
+from questionnaire.models import Answer
 from django.utils.translation import ugettext as _
 from json import dumps
 
 
 @question_proc('choice-yesno', 'choice-yesnocomment', 'choice-yesnodontknow')
-def question_yesno(request, question):
+def question_yesno(request, question, runinfo, errors):
     key = "question_%s" % question.number
     key2 = "question_%s_comment" % question.number
     val = request.POST.get(key, None)
@@ -22,9 +23,26 @@ def question_yesno(request, question):
     else:
         hasdontknow = False
 
+    answers = []
     if not val:
-        if cd.get('default', None):
+        if question.number not in errors:
+            try:
+                answers = Answer.objects.get(subject=runinfo.subject, runid=runinfo.runid, question=question)
+            except Answer.DoesNotExist:
+                pass
+            except Answer.MultipleObjectsReturned:
+                answers = Answer.objects.filter(subject=runinfo.subject, runid=runinfo.runid, question=question).order_by('-id')[0]
+
+        if answers and answers.split_answer():
+            val = answers.split_answer()[0]
+        elif 'default' in cd:
             val = cd['default']
+
+    if not cmt:
+        if answers:
+            for answer in answers.split_answer():
+                if isinstance(answer, list):
+                    cmt = answer[0]
 
     checks = ''
     if hascomment:
@@ -50,11 +68,24 @@ def question_yesno(request, question):
 
 
 @question_proc('open', 'open-textfield')
-def question_open(request, question):
+def question_open(request, question, runinfo, errors):
     key = "question_%s" % question.number
     value = question.getcheckdict().get('default', '')
+    answers = []
     if key in request.POST:
         value = request.POST[key]
+    else:
+        if question.number not in errors:
+            try:
+                answers = Answer.objects.get(subject=runinfo.subject, runid=runinfo.runid, question=question)
+            except Answer.DoesNotExist:
+                pass
+            except Answer.MultipleObjectsReturned:
+                answers = Answer.objects.filter(subject=runinfo.subject, runid=runinfo.runid, question=question).order_by('-id')[0]
+
+        if answers and answers.split_answer():
+            value = answers.split_answer()[0]
+
     return {
         'required': question.getcheckdict().get('required', False),
         'value': value,

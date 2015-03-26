@@ -1,17 +1,31 @@
 from questionnaire import *
+from questionnaire.models import Answer
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from json import dumps
 
 @question_proc('range', 'number')
-def question_range_or_number(request, question):
+def question_range_or_number(request, question, runinfo, errors):
     cd = question.getcheckdict()
-    
+
     rmin, rmax = parse_range(cd)
     rstep = parse_step(cd)
     runit = cd.get('unit', '')
-    
-    current = request.POST.get('question_%s' % question.number, rmin)   
+
+
+    current = request.POST.get('question_%s' % question.number, None)
+    if not current:
+        current = rmin
+        answers = []
+        if question.number not in errors:
+            try:
+                answers = Answer.objects.get(subject=runinfo.subject, runid=runinfo.runid, question=question)
+            except Answer.DoesNotExist:
+                pass
+            except Answer.MultipleObjectsReturned:
+                answers = Answer.objects.filter(subject=runinfo.subject, runid=runinfo.runid, question=question).order_by('-id')[0]
+        if answers and answers.split_answer():
+            current = answers.split_answer()[0]
 
     jsinclude = []
     if question.type == 'range':
@@ -48,7 +62,7 @@ def process_range_or_number(question, answer):
         ans = convert(ans)
     except:
        raise AnswerException(_(u"Could not convert the number"))
-    
+
     if ans > convert(rmax) or ans < convert(rmin):
         raise AnswerException(_(u"Out of range"))
 
