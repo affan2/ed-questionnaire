@@ -1,3 +1,4 @@
+from math import ceil
 from questionnaire import *
 from django.utils.translation import ugettext as _, ungettext
 from json import dumps
@@ -84,7 +85,7 @@ def question_multiple(request, question):
         "extras": extras,
         "freeform_multiple": freeform_multiple,
         "freeform_other": freeform_other,
-        "split_column": split_column,
+        "split_column": ceil(len(choices)/2),
         "template"  : "questionnaire/choice-multiple-freeform.html",
         "required" : cd.get("required", False) and cd.get("required") != "0",
 
