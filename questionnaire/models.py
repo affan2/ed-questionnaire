@@ -163,7 +163,7 @@ class RunInfo(models.Model):
     questionset = models.ForeignKey(QuestionSet, blank=True, null=True) # or straight int?
     emailcount = models.IntegerField(default=0)
 
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
     emailsent = models.DateTimeField(null=True, blank=True)
 
     lastemailerror = models.CharField(max_length=64, null=True, blank=True)
@@ -245,7 +245,7 @@ class RunInfo(models.Model):
 class RunInfoHistory(models.Model):
     subject = models.ForeignKey(Subject)
     runid = models.CharField(max_length=32)
-    completed = models.DateField()
+    completed = models.DateTimeField(auto_now_add=True, editable=False)
     tags = models.TextField(
             blank=True,
             help_text=u"Tags used on this run, separated by commas"
@@ -346,7 +346,7 @@ class Question(models.Model):
     def hide_number(self):
         if 'hide_number' in parse_checks(self.checks):
             return True
-        
+
         return False
 
     def choices(self):
