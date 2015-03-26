@@ -69,9 +69,12 @@ def question_multiple(request, question):
     extracount = int(cd.get('extracount', 0))
     if not extracount and question.type == 'choice-multiple-freeform':
         extracount = 1
+    freeform_multiple = cd.get('freeform_multiple', False)
+    freeform_other = cd.get('freeform_other', False)
+    split_column = cd.get('split_column', False)
     extras = []
     for x in range(1, extracount+1):
-        key = "question_%s_more%d" % (question.number, x)
+        key = "question_%s_more_%d" % (question.number, x)
         if key in request.POST:
             extras.append( (key, request.POST[key],) )
         else:
@@ -79,6 +82,9 @@ def question_multiple(request, question):
     return {
         "choices": choices,
         "extras": extras,
+        "freeform_multiple": freeform_multiple,
+        "freeform_other": freeform_other,
+        "split_column": split_column,
         "template"  : "questionnaire/choice-multiple-freeform.html",
         "required" : cd.get("required", False) and cd.get("required") != "0",
 
