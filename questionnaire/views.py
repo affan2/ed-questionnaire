@@ -199,10 +199,10 @@ def get_progress(runinfo):
 
     for qs in sets:
         if questionset_satisfies_checks(qs, runinfo, checks):
-            total += 1
+            total += len(qs.questions())
 
         if qs.id == current.id:
-            position = total
+            position = total + (total * 0.25)
 
     if not all((position, total)):
         progress = 1
@@ -211,6 +211,9 @@ def get_progress(runinfo):
 
         # progress is always at least one percent
         progress = progress >= 1.0 and progress or 1
+
+        # progress is always max 100 percent
+        progress = progress >= 100.0 and 100 or progress
 
     return int(progress)
 
