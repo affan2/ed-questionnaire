@@ -85,7 +85,7 @@ def question_multiple(request, question):
         "extras": extras,
         "freeform_multiple": freeform_multiple,
         "freeform_other": freeform_other,
-        "split_column": ceil(len(choices)/2) if split_column else split_column,
+        "split_column": int(ceil(float(len(choices))/2)) if split_column else split_column,
         "template"  : "questionnaire/choice-multiple-freeform.html",
         "required" : cd.get("required", False) and cd.get("required") != "0",
 
