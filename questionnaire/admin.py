@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.contrib import admin
+from django.core.urlresolvers import reverse
 from models import *
 
 adminsite = admin.site
@@ -51,7 +52,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     readonly_fields = ('export',)
 
     def export(self, obj):
-        return '<a href="/q/csv/%s">%s</a>' % (obj.id, _("Download data"))
+        return '<a href="%s">%s</a>' % (reverse('export_csv', kwargs={'qid': obj.id}), _("Download data"))
 
     export.allow_tags = True
     export.short_description = _('Export to CSV')
