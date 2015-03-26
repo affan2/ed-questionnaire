@@ -343,6 +343,10 @@ class Question(models.Model):
             return "&nbsp;&nbsp;&nbsp;" + sub
         return self.number
 
+    def hide_number(self):
+        if 'hide_number' in parse_checks(self.checks):
+            return True
+
     def choices(self):
         if self.type == 'sameas':
             return self.sameas().choices()
