@@ -326,6 +326,18 @@ def questionnaire(request, runcode=None, qs=None):
     We only commit on success, to maintain consistency.  We also specifically
     rollback if there were errors processing the answers for this questionset.
     """
+    redirect_url = '/'
+    # current_url = request.path
+    # base_url = current_url.replace('/q/', '/')
+    # try:
+    #     Questionnaire.objects.get(base_url=base_url.replace('/%s/' % translation.get_language(), '/$LANG/'))
+    #     redirect_url = base_url
+    # except Questionnaire.DoesNotExist:
+    #     redirect_url = '/'
+    # except Questionnaire.MultipleObjectsReturned:
+    #     redirect_url = base_url
+    # import ipdb; ipdb.set_trace()
+
     if use_session:
         session_runcode = request.session.get('runcode', None)
         if session_runcode is not None:
@@ -339,7 +351,7 @@ def questionnaire(request, runcode=None, qs=None):
     if not runcode:
         runcode = request.GET.get('runcode')
         if not runcode:
-            return HttpResponseRedirect("/")
+            return HttpResponseRedirect(redirect_url)
         else:
             if not use_session:
                 args = [runcode, ]
@@ -352,7 +364,7 @@ def questionnaire(request, runcode=None, qs=None):
 
     if not runinfo:
         transaction.commit()
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect(redirect_url)
 
     # let the runinfo have a piggy back ride on the request
     # so we can easily use the runinfo in places like the question processor
