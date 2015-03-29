@@ -1,7 +1,7 @@
 from math import ceil
 from questionnaire import *
 from questionnaire.models import Answer
-from django.utils.translation import ugettext as _, ungettext
+from django.utils.translation import ugettext as _, ungettext, ugettext
 from json import dumps
 
 @question_proc('choice', 'choice-freeform', 'dropdown')
@@ -143,11 +143,22 @@ def process_multiple(question, answer):
     if requiredcount and requiredcount > question.choices().count():
         requiredcount = question.choices().count()
 
+    cd = question.getcheckdict()
+    freeform_other = cd.get('freeform_other', False)
+    freeform_required = False
+    if freeform_other:
+        for k, v in answer.items():
+            if 'Other' in k:
+                freeform_required = True
+
     for k, v in answer.items():
         if k.startswith('multiple'):
             multiple.append(v)
-        if k.startswith('more') and len(v.strip()) > 0:
-            multiple_freeform.append(v)
+        if k.startswith('more'):
+            if len(v.strip()) > 0:
+                multiple_freeform.append(v)
+            elif freeform_required:
+                raise AnswerException(ugettext(u"You have selected the 'Other' option - you must enter a value"))
 
     if len(multiple) + len(multiple_freeform) < requiredcount:
         raise AnswerException(ungettext(u"You must select at least %d option",
