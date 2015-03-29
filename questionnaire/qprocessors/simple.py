@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from general.utils import validate_email
 from questionnaire import *
 from questionnaire.models import Answer
 from django.utils.translation import ugettext as _
