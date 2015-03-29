@@ -97,6 +97,7 @@ def process_simple(question, ansdict):
     checkdict = question.getcheckdict()
     ans = ansdict['ANSWER'] or ''
     qtype = question.get_type()
+    validation = checkdict.get('validation', None)
     if qtype.startswith('choice-yesno'):
         if ans not in ('yes', 'no', 'dontknow'):
             raise AnswerException(_(u'You must select an option'))
@@ -111,6 +112,9 @@ def process_simple(question, ansdict):
     else:
         if not ans.strip() and checkdict.get('required', False):
             raise AnswerException(_(u'Field cannot be blank'))
+    if validation:
+        if validation == 'email' and not ans.Regexp('(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,24}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)', 'i'):
+            raise AnswerException(_(u'You must enter a valid email'))
     if ansdict.has_key('comment') and len(ansdict['comment']) > 0:
         return dumps([ans, [ansdict['comment']]])
     if ans:
