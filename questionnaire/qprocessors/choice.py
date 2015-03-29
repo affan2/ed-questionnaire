@@ -148,7 +148,7 @@ def process_multiple(question, answer):
     freeform_required = False
     if freeform_other:
         for k, v in answer.items():
-            if 'Other' in k:
+            if v == 'Other':
                 freeform_required = True
 
     for k, v in answer.items():
