@@ -98,7 +98,7 @@ class QuestionSet(models.Model):
     "Which questions to display on a question page"
     questionnaire = models.ForeignKey(Questionnaire)
     sortid = models.IntegerField() # used to decide which order to display in
-    heading = models.CharField(max_length=64)
+    heading = models.CharField(max_length=256)
     checks = models.CharField(max_length=256, blank=True,
         help_text = """Current options are 'femaleonly' or 'maleonly' and shownif="QuestionNumber,Answer" which takes the same format as <tt>requiredif</tt> for questions.""")
     text = models.TextField(u'Text', help_text="This is interpreted as Textile: <a href='http://en.wikipedia.org/wiki/Textile_%28markup_language%29' target='_blank'>http://en.wikipedia.org/wiki/Textile_(markup_language)</a>")
