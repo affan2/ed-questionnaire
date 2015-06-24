@@ -44,6 +44,8 @@ def question_choice(request, question, runinfo, errors):
                 if isinstance(answer, list):
                     comment = answer[0]
 
+    split_column = cd.get('split_column', False)
+
     return {
         'choices'   : choices,
         'sel_entry' : val == '_entry_',
@@ -51,6 +53,7 @@ def question_choice(request, question, runinfo, errors):
         'required'  : True,
         'comment'   : comment,
         'jstriggers': jstriggers,
+        "split_column": int(ceil(float(len(choices)) / 2)) if split_column else split_column,
     }
 
 @answer_proc('choice', 'choice-freeform', 'dropdown')
