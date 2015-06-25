@@ -78,7 +78,7 @@ add_type('dropdown', 'Dropdown choice [select]')
 
 @question_proc('choice-multiple', 'choice-multiple-freeform')
 def question_multiple(request, question, runinfo, errors):
-    key = "question_%s" % question.number
+    base_key = "question_%s" % question.number
     choices = []
     counter = 0
     cd = question.getcheckdict()
@@ -95,7 +95,7 @@ def question_multiple(request, question, runinfo, errors):
 
     for choice in question.choices():
         counter += 1
-        key = "question_%s_multiple_%d" % (question.number, choice.sortid)
+        key = "%s_multiple_%d" % (base_key, choice.sortid)
         if key in request.POST or \
             (answers and choice.value in answers.split_answer()) or \
                 (request.method == 'GET' and choice.value in defaults):
@@ -109,17 +109,27 @@ def question_multiple(request, question, runinfo, errors):
     freeform_other = cd.get('freeform_other', False)
     split_column = cd.get('split_column', False)
     extras = []
+    extra_added = False
+    extra_key = None
     for x in range(1, extracount+1):
-        key = "question_%s_more_%d" % (question.number, x)
+        key = "%s_more_%d" % (base_key, x)
+        extra_key = key
         if key in request.POST:
             extras.append( (key, request.POST[key],) )
+            extra_added = True
         else:
             if answers:
                 for answer in answers.split_answer():
                     if isinstance(answer, list):
                         extras.append( (key, answer[0],) )
+                        extra_added = True
             else:
                 extras.append( (key, '',) )
+                extra_added = True
+
+    if extracount >= 1 and extra_key and not extra_added:
+        extras.append((extra_key, '',))
+
     return {
         "choices": choices,
         "extras": extras,
