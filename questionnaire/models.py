@@ -135,7 +135,8 @@ class QuestionSet(models.Model):
 
     def is_last(self):
         try:
-            return self.questionnaire.questionsets()[-1] == self
+            questionsets = self.questionnaire.questionsets()
+            return questionsets[len(questionsets) - 1] == self
         except NameError:
             # should only occur if not yet saved
             return True
