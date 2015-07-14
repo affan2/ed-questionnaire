@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from general.utils import validate_email
+from phonenumber_field.validators import validate_international_phonenumber
 from questionnaire import *
 from questionnaire.models import Answer
 from django.utils.translation import ugettext as _
@@ -119,6 +120,11 @@ def process_simple(question, ansdict):
             validate_email(ans)
         except ValidationError:
             raise AnswerException(_(u'You must enter a valid email'))
+    if validation == 'phone':
+        try:
+            validate_international_phonenumber(ans)
+        except ValidationError:
+            raise AnswerException(_(u'You must enter a valid phone number (e.g. +411234567).'))
 
     if ansdict.has_key('comment') and len(ansdict['comment']) > 0:
         return dumps([ans, [ansdict['comment']]])
