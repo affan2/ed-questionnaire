@@ -8,7 +8,7 @@ urlpatterns = patterns(
     '',
     url(r'^$',
         questionnaire, name='questionnaire_noargs'),
-    url(r'^csv/(?P<qid>\d+)/(?P<only_complete>[a-zA-Z]+)/$',
+    url(r'^csv/(?P<qid>\d+)/(?P<only_complete>\d)/$',
         export_csv, name='export_csv'),
     url(r'^(?P<runcode>[^/]+)/progress/$',
         get_async_progress, name='progress'),

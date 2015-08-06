@@ -810,7 +810,7 @@ def export_csv(request, qid, only_complete=False):  # questionnaire_id
     return response
 
 
-def answer_export(questionnaire, answers=None, only_complete=False):
+def answer_export(questionnaire, answers=None, only_complete=0):
     """
     questionnaire -- questionnaire model for export
     answers -- query set of answers to include in export, defaults to all
@@ -852,8 +852,8 @@ def answer_export(questionnaire, answers=None, only_complete=False):
         qchoicedict[q.id] = [x[0] for x in q.choice_set.values_list('value')]
 
     completed_runs = []
-    if only_complete:
-        completed_runs = RunInfoHistory.objects.filter(questionnaire=questionnaire).values_list('runid')
+    if int(only_complete) == 1:
+        completed_runs = RunInfoHistory.objects.filter(questionnaire=questionnaire).values_list('runid', flat=True)
 
     runid = subject = None
     out = []
