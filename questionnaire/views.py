@@ -752,7 +752,7 @@ def _table_headers(questions):
 
 
 @permission_required("questionnaire.export")
-def export_csv(request, qid):  # questionnaire_id
+def export_csv(request, qid, only_complete=False):  # questionnaire_id
     """
     For a given questionnaire id, generaete a CSV containing all the
     answers for all subjects.
@@ -794,7 +794,7 @@ def export_csv(request, qid):  # questionnaire_id
     fd = tempfile.TemporaryFile()
 
     questionnaire = get_object_or_404(Questionnaire, pk=int(qid))
-    headings, answers = answer_export(questionnaire)
+    headings, answers = answer_export(questionnaire, only_complete=only_complete)
 
     writer = UnicodeWriter(fd)
     writer.writerow([u'subject', u'runid'] + headings)
@@ -810,7 +810,7 @@ def export_csv(request, qid):  # questionnaire_id
     return response
 
 
-def answer_export(questionnaire, answers=None):
+def answer_export(questionnaire, answers=None, only_complete=False):
     """
     questionnaire -- questionnaire model for export
     answers -- query set of answers to include in export, defaults to all
@@ -851,35 +851,40 @@ def answer_export(questionnaire, answers=None):
     for q in questions:
         qchoicedict[q.id] = [x[0] for x in q.choice_set.values_list('value')]
 
+    completed_runs = []
+    if only_complete:
+        completed_runs = RunInfoHistory.objects.filter(questionnaire=questionnaire).values_list('runid')
+
     runid = subject = None
     out = []
     row = []
     for answer in answers:
-        if answer.runid != runid or answer.subject != subject:
-            if row:
-                out.append((subject, runid, row))
-            runid = answer.runid
-            subject = answer.subject
-            row = [""] * len(headings)
-        ans = answer.split_answer()
-        if type(ans) == int:
-            ans = str(ans)
-        for choice in ans:
-            col = None
-            if type(choice) == list:
-                # freeform choice
-                choice = choice[0]
-                col = coldict.get(answer.question.number + '-freeform', None)
-            if col is None:  # look for enumerated choice column (multiple-choice)
-                col = coldict.get(answer.question.number + '-' + unicode(choice), None)
-            if col is None:  # single-choice items
-                if ((not qchoicedict[answer.question.id]) or
-                            choice in qchoicedict[answer.question.id]):
-                    col = coldict.get(answer.question.number, None)
-            if col is None:  # last ditch, if not found throw it in a freeform column
-                col = coldict.get(answer.question.number + '-freeform', None)
-            if col is not None:
-                row[col] = choice
+        if answer.runid in completed_runs:
+            if answer.runid != runid or answer.subject != subject:
+                if row:
+                    out.append((subject, runid, row))
+                runid = answer.runid
+                subject = answer.subject
+                row = [""] * len(headings)
+            ans = answer.split_answer()
+            if type(ans) == int:
+                ans = str(ans)
+            for choice in ans:
+                col = None
+                if type(choice) == list:
+                    # freeform choice
+                    choice = choice[0]
+                    col = coldict.get(answer.question.number + '-freeform', None)
+                if col is None:  # look for enumerated choice column (multiple-choice)
+                    col = coldict.get(answer.question.number + '-' + unicode(choice), None)
+                if col is None:  # single-choice items
+                    if ((not qchoicedict[answer.question.id]) or
+                                choice in qchoicedict[answer.question.id]):
+                        col = coldict.get(answer.question.number, None)
+                if col is None:  # last ditch, if not found throw it in a freeform column
+                    col = coldict.get(answer.question.number + '-freeform', None)
+                if col is not None:
+                    row[col] = choice
     # and don't forget about the last one
     if row:
         out.append((subject, runid, row))

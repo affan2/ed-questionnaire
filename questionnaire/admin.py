@@ -48,14 +48,20 @@ class QuestionAdmin(admin.ModelAdmin):
 
 
 class QuestionnaireAdmin(admin.ModelAdmin):
-    list_display = ('name', 'base_template', 'redirect_url', 'export')
+    list_display = ('name', 'base_template', 'redirect_url', 'export_complete', 'export')
     readonly_fields = ('export',)
 
     def export(self, obj):
-        return '<a href="%s">%s</a>' % (reverse('export_csv', kwargs={'qid': obj.id}), _("Download data"))
+        return '<a href="%s">%s</a>' % (reverse('export_csv', kwargs={'qid': obj.id, 'only_complete': 0}), _("Download data"))
+
+    def export_complete(self, obj):
+        return '<a href="%s">%s</a>' % (reverse('export_csv', kwargs={'qid': obj.id, 'only_complete': 1}), _("Download completed data"))
 
     export.allow_tags = True
     export.short_description = _('Export to CSV')
+
+    export_complete.allow_tags = True
+    export_complete.short_description = _('Export Completed Entries to CSV')
 
 
 class RunInfoAdmin(admin.ModelAdmin):
