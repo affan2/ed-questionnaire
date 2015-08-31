@@ -10,6 +10,7 @@ from django.db import transaction
 from django.conf import settings
 from datetime import datetime
 from django.utils import translation
+from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from questionnaire import QuestionProcessors
 from questionnaire import questionnaire_start, questionset_start, questionset_done, questionnaire_done
@@ -747,7 +748,7 @@ def _table_headers(questions):
             if q.type == 'choice-multiple-freeform':
                 columns.append(q.number + '-freeform')
         else:
-            columns.append(q.number)
+            columns.append(q.number + '-' + strip_tags(q.text_en))
     return columns
 
 
@@ -797,9 +798,9 @@ def export_csv(request, qid, only_complete=False):  # questionnaire_id
     headings, answers = answer_export(questionnaire, only_complete=only_complete)
 
     writer = UnicodeWriter(fd)
-    writer.writerow([u'subject', u'runid'] + headings)
-    for subject, runid, answer_row in answers:
-        row = ["%s/%s" % (subject.id, subject.state), runid] + [
+    writer.writerow([u'subject', u'runid', u'created'] + headings)
+    for subject, runid, created, answer_row in answers:
+        row = ["%s/%s" % (subject.id, subject.state), runid, created] + [
             a if a else '--' for a in answer_row]
         writer.writerow(row)
 
@@ -851,18 +852,20 @@ def answer_export(questionnaire, answers=None, only_complete=0):
     for q in questions:
         qchoicedict[q.id] = [x[0] for x in q.choice_set.values_list('value')]
 
-    completed_runs = []
+    runs = RunInfo.objects.filter(questionset__questionnaire=questionnaire).values('runid', 'created')
     if int(only_complete) == 1:
-        completed_runs = RunInfoHistory.objects.filter(questionnaire=questionnaire).values_list('runid', flat=True)
+        runs = RunInfoHistory.objects.filter(questionnaire=questionnaire).values('runid', 'completed')
+
+    runs = {run['runid']: run['completed'] if 'completed' in run else run['created'] for run in runs}
 
     runid = subject = None
     out = []
     row = []
     for answer in answers:
-        if answer.runid in completed_runs:
+        if answer.runid in runs.iterkeys():
             if answer.runid != runid or answer.subject != subject:
                 if row:
-                    out.append((subject, runid, row))
+                    out.append((subject, runid, runs[runid].strftime('%Y-%m-%d'), row))
                 runid = answer.runid
                 subject = answer.subject
                 row = [""] * len(headings)
@@ -887,7 +890,7 @@ def answer_export(questionnaire, answers=None, only_complete=0):
                     row[col] = choice
     # and don't forget about the last one
     if row:
-        out.append((subject, runid, row))
+        out.append((subject, runid, runs[runid], row))
     return headings, out
 
 
