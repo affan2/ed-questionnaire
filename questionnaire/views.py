@@ -883,7 +883,7 @@ def answer_export(questionnaire, answers=None, only_complete=0):
                 if col is None:  # single-choice items
                     if ((not qchoicedict[answer.question.id]) or
                                 choice in qchoicedict[answer.question.id]):
-                        col = coldict.get(answer.question.number, None)
+                        col = coldict.get(answer.question.number + '-' + strip_tags(answer.question.text_en), None)
                 if col is None:  # last ditch, if not found throw it in a freeform column
                     col = coldict.get(answer.question.number + '-freeform', None)
                 if col is not None:
