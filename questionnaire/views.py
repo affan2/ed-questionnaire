@@ -890,7 +890,7 @@ def answer_export(questionnaire, answers=None, only_complete=0):
                     row[col] = choice
     # and don't forget about the last one
     if row:
-        out.append((subject, runid, runs[runid], row))
+        out.append((subject, runid, runs[runid].strftime('%Y-%m-%d'), row))
     return headings, out
 
 
